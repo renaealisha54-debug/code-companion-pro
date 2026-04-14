@@ -1,0 +1,46 @@
+import { useEffect, useRef } from "react";
+
+interface PreviewerProps {
+  code: string; // The HTML/JS/CSS string from your editor
+}
+
+export const Previewer = ({ code }: PreviewerProps) => {
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (iframeRef.current) {
+        // Create a full HTML document string
+        const html = `
+          <html>
+            <head>
+              <script src="https://cdn.tailwindcss.com"></script>
+              <style>body { background: #000; color: #fff; font-family: sans-serif; }</style>
+            </head>
+            <body>
+              ${code}
+            </body>
+          </html>
+        `;
+        iframeRef.current.srcdoc = html;
+      }
+    }, 500); // Debounce for 500ms to prevent constant flickering while typing
+
+    return () => clearTimeout(timeout);
+  }, [code]);
+
+  return (
+    <div className="w-full h-full bg-black rounded-lg border border-border overflow-hidden">
+      <div className="bg-muted px-4 py-1 text-xs text-muted-foreground border-b flex justify-between">
+        <span>Live Preview</span>
+        <span className="text-green-500">● Running</span>
+      </div>
+      <iframe
+        ref={iframeRef}
+        title="preview"
+        className="w-full h-[calc(100%-28px)] border-none"
+        sandbox="allow-scripts"
+      />
+    </div>
+  );
+};
