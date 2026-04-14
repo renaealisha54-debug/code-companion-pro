@@ -1,0 +1,63 @@
+import React, { useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { oneDark } from "@codemirror/theme-one-dark";
+import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { SUPPORTED_LANGUAGES, LanguageId } from "@/lib/languages";
+import { Previewer } from "./Previewer";
+
+export default function ProEditor() {
+  const [lang, setLang] = useState<LanguageId>("javascript");
+  const [code, setCode] = useState("// Welcome to Code Companion Pro\nconsole.log('Hello World');");
+
+  // Find the active extension based on state
+  const activeExtension = SUPPORTED_LANGUAGES.find((l) => l.id === lang)?.extension || [];
+
+  return (
+    <div className="flex flex-col h-screen w-full bg-background border-t">
+      {/* Toolbar */}
+      <div className="flex items-center justify-between px-4 py-2 border-b bg-card">
+        <div className="flex items-center gap-4">
+          <span className="text-sm font-bold tracking-tight text-primary">ACCIO 3.0</span>
+          <Select value={lang} onValueChange={(v) => setLang(v as LanguageId)}>
+            <SelectTrigger className="w-[140px] h-8 text-xs">
+              <SelectValue placeholder="Select Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {SUPPORTED_LANGUAGES.map((l) => (
+                <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Main Workspace */}
+      <PanelGroup direction="horizontal" className="flex-1">
+        <Panel defaultSize={50} minSize={20} className="relative">
+          <CodeMirror
+            value={code}
+            height="100%"
+            theme={oneDark}
+            extensions={[activeExtension]}
+            onChange={(value) => setCode(value)}
+            className="h-full overflow-auto text-[14px] leading-relaxed"
+          />
+        </Panel>
+
+        <PanelResizeHandle className="w-1.5 bg-border hover:bg-primary/50 transition-colors cursor-col-resize" />
+
+        <Panel defaultSize={50} minSize={20}>
+          {/* Only show previewer for web-compatible languages */}
+          {lang === "javascript" ? (
+            <Previewer code={code} />
+          ) : (
+            <div className="h-full flex items-center justify-center bg-black/20 text-muted-foreground text-sm">
+              Preview only available for Web (JS/HTML)
+            </div>
+          )}
+        </Panel>
+      </PanelGroup>
+    </div>
+  );
+}
